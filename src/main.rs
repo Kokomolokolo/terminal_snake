@@ -3,7 +3,7 @@ use std::{
 };
 
 use crossterm::{
-    cursor::MoveTo, event, execute, terminal::{self, Clear, ClearType}
+    cursor::MoveTo, event::{self, DisableFocusChange}, execute, terminal::{self, Clear, ClearType}
 };
 use crossterm::event::{poll, read, Event, KeyCode};
 use rand::Rng;
@@ -54,6 +54,7 @@ fn main() -> std::io::Result<()> {
         }
         
         draw_game(&snake, &food);
+
         stdout().flush()?;
 
         thread::sleep(Duration::from_millis(100));
@@ -75,8 +76,12 @@ fn update_game_and_has_collected(snake: &mut Vec<(i32, i32)>, food: &mut Vec<(i3
 fn draw_game(snake: &Vec<(i32, i32)>, food: &Vec<(i32, i32)>) {
     for y in 0..20 {
         for x in 0..30 {
-            if contains_snake(snake, &(x, y)) {
-                print!("@");
+            if snake.contains(&(x, y)) {
+                if snake[0] == ((x, y)) {
+                    print!("%");
+                } else {
+                    print!("@");
+                }
             } else if food.contains(&(x, y)) {
                 print!("*")
             } else {
@@ -85,6 +90,15 @@ fn draw_game(snake: &Vec<(i32, i32)>, food: &Vec<(i32, i32)>) {
         }
         print!("\r\n")
     }
+}
+fn check_game_over(snake: &Vec<(i32, i32)>) -> bool {
+    if snake[0].0 > 30 || snake[0].1 > 20 // Rechts, unten
+    || snake[0].0 < 0 
+     
+    {
+        return true;
+    }
+    false
 }
 
 fn move_snake(snake: &mut Vec<(i32, i32)>, dir: &Dir) {
@@ -115,7 +129,7 @@ fn spawn_food(snake: &Vec<(i32, i32)>) -> (i32, i32) {
     loop {
         let pos = (
             rng.random_range(0..20),
-            rng.random_range(0..30)
+            rng.random_range(0..30),
         );
 
         if !snake.contains(&pos) {
